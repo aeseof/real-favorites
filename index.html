@@ -6,6 +6,7 @@
 <title>realfavorites</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://js.hcaptcha.com/1/api.js?onload=onHCaptchaLoad&render=explicit" async defer></script>
 <style>
@@ -415,16 +416,16 @@
 
 <!-- sandbox banner -->
 <div id="sandbox-banner">
-  <span onclick="window.open('https://aeseof.github.io/realfavorites','_blank')" style="cursor:pointer;">✦ &nbsp;you're viewing a <em>sandboxed preview</em> — sign-ins are disabled &nbsp;·&nbsp; <em>love it? try it →</em></span>
+  <span onclick="window.open('https://aeseof.github.io/realfavorites','_blank')" style="cursor:pointer;"><i class="fa-solid fa-diamond" style="font-size:9px;"></i> &nbsp;you're viewing a <em>sandboxed preview</em> — sign-ins are disabled &nbsp;·&nbsp; <em>love it? try it <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i></em></span>
   &nbsp;&nbsp;·&nbsp;&nbsp;
   <span id="sb-skip" onclick="skipSandboxLogin()" style="cursor:pointer; color:var(--beige-dim); text-decoration:underline; text-underline-offset:3px;">skip login page</span>
 </div>
 
 <!-- custom right-click menu -->
 <div id="ctx-menu">
-  <div class="ctx-item" onclick="ctxRefresh()"><span class="ctx-icon">↺</span> refresh page</div>
+  <div class="ctx-item" onclick="ctxRefresh()"><span class="ctx-icon"><i class="fa-solid fa-rotate-right"></i></span> refresh page</div>
   <div class="ctx-sep"></div>
-  <div class="ctx-item" id="ctx-signout" onclick="ctxSignOut()"><span class="ctx-icon">→</span> sign out</div>
+  <div class="ctx-item" id="ctx-signout" onclick="ctxSignOut()"><span class="ctx-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span> sign out</div>
 </div>
 
 <div class="app">
@@ -500,7 +501,7 @@
               <label>confirm password</label>
               <input type="password" id="su-confirm" placeholder="repeat password" autocomplete="new-password" onkeydown="if(event.key==='Enter')doSignUp()">
             </div>
-            <button class="btn-primary" id="su-btn" onclick="doSignUp()">continue →</button>
+            <button class="btn-primary" id="su-btn" onclick="doSignUp()">continue <i class="fa-solid fa-arrow-right"></i></button>
             <div class="captcha-wrap"><div class="h-captcha" id="su-captcha" data-sitekey="a4a2dbae-5972-4930-b8a6-61c66dde203e" data-theme="dark"></div></div>
             <div id="su-msg" class="msg"></div>
             <div class="switch-link">already have an account? <button onclick="showScreen('signin')">sign in</button></div>
@@ -539,7 +540,7 @@
             <div id="ob-msg0" class="msg"></div>
             <div class="ob-nav">
               <span></span>
-              <button class="btn-primary" style="width:auto;padding:10px 30px;margin-top:14px;" onclick="obNext(0)">next →</button>
+              <button class="btn-primary" style="width:auto;padding:10px 30px;margin-top:14px;" onclick="obNext(0)">next <i class="fa-solid fa-arrow-right"></i></button>
             </div>
           </div>
 
@@ -550,19 +551,19 @@
             <p class="hint">helps us shape your experience just a little.</p>
             <div class="usage-grid">
               <div class="usage-tile" data-v="school" onclick="pickUsage(this)">
-                <span class="ico">📚</span><div class="tile-lbl">school</div>
+                <span class="ico"><i class="fa-solid fa-graduation-cap"></i></span><div class="tile-lbl">school</div>
               </div>
               <div class="usage-tile" data-v="work" onclick="pickUsage(this)">
-                <span class="ico">💼</span><div class="tile-lbl">work</div>
+                <span class="ico"><i class="fa-solid fa-briefcase"></i></span><div class="tile-lbl">work</div>
               </div>
               <div class="usage-tile" data-v="personal" onclick="pickUsage(this)">
-                <span class="ico">✦</span><div class="tile-lbl">personal</div>
+                <span class="ico"><i class="fa-solid fa-star"></i></span><div class="tile-lbl">personal</div>
               </div>
             </div>
             <div id="ob-msg1" class="msg"></div>
             <div class="ob-nav">
-              <button class="btn-ghost" onclick="obBack(1)">← back</button>
-              <button class="btn-primary" style="width:auto;padding:10px 30px;" onclick="obNext(1)">next →</button>
+              <button class="btn-ghost" onclick="obBack(1)"><i class="fa-solid fa-arrow-left"></i> back</button>
+              <button class="btn-primary" style="width:auto;padding:10px 30px;" onclick="obNext(1)">next <i class="fa-solid fa-arrow-right"></i></button>
             </div>
           </div>
 
@@ -586,8 +587,8 @@
             </label>
             <div id="ob-msg2" class="msg"></div>
             <div class="ob-nav">
-              <button class="btn-ghost" onclick="obBack(2)">← back</button>
-              <button class="btn-primary" id="ob-finish" style="width:auto;padding:10px 30px;" onclick="finishOnboarding()">finish setup ✓</button>
+              <button class="btn-ghost" onclick="obBack(2)"><i class="fa-solid fa-arrow-left"></i> back</button>
+              <button class="btn-primary" id="ob-finish" style="width:auto;padding:10px 30px;" onclick="finishOnboarding()">finish setup <i class="fa-solid fa-check"></i></button>
             </div>
           </div>
 
@@ -643,7 +644,7 @@
       <div class="upload-zone" id="uploadZone">
         <input type="file" id="fileInput" accept="image/*" onchange="handleImg(event)">
         <div class="upload-hint" id="uploadHint">
-          <span class="ico">◈</span>
+          <span class="ico"><i class="fa-solid fa-image"></i></span>
           drop image or <span>browse</span><br>
           <span style="font-size:10px;color:var(--text-muted);">png · jpg · webp — max 2 mb</span>
         </div>
@@ -663,7 +664,7 @@
     <div id="modal-msg" class="msg"></div>
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeModal()">cancel</button>
-      <button class="btn-primary" onclick="saveFav()" style="width:auto;padding:10px 28px;margin-top:0;">save</button>
+      <button class="btn-primary" id="save-btn" onclick="saveFav()" style="width:auto;padding:10px 28px;margin-top:0;">save</button>
     </div>
   </div>
 </div>
@@ -795,7 +796,7 @@ async function doSignUp() {
 
   btn.disabled = true; btn.textContent = 'creating…';
   const { error } = await sb.auth.signUp({ email, password: pw, options: { captchaToken } });
-  btn.disabled = false; btn.textContent = 'continue →';
+  btn.disabled = false; btn.innerHTML = 'continue <i class="fa-solid fa-arrow-right"></i>';
   hcaptcha.reset(suWidgetId);
   if (error) { setMsg(msg, error.message, 1); return; }
   // onAuthStateChange fires → afterAuth → onboarding
@@ -819,7 +820,7 @@ function obSlugInput(el) {
   el.value = el.value.toLowerCase().replace(/[^a-z0-9_-]/g,'');
   const v = el.value;
   document.getElementById('ob-slug-live').innerHTML =
-    v ? `→ <em>aeseof.github.io/realfavorites/${v}</em>` : '';
+    v ? `<i class="fa-solid fa-arrow-right" style="font-size:9px;"></i> <em>aeseof.github.io/realfavorites/${v}</em>` : '';
 }
 
 function pickUsage(el) {
@@ -863,7 +864,7 @@ async function finishOnboarding() {
     setMsg(document.getElementById('ob-msg2'),'you must agree to the terms of service',1); return;
   }
   const btn = document.getElementById('ob-finish');
-  btn.disabled = true; btn.textContent = 'saving…';
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> saving';
 
   // Save profile
   const { error: profErr } = await sb.from('profiles').upsert({
@@ -872,7 +873,7 @@ async function finishOnboarding() {
     usage: obData.usage,
     onboarding_done: true, created_at: new Date().toISOString(),
   });
-  if (profErr) { setMsg(document.getElementById('ob-msg2'), profErr.message, 1); btn.disabled=false; btn.textContent='finish setup ✓'; return; }
+  if (profErr) { setMsg(document.getElementById('ob-msg2'), profErr.message, 1); btn.disabled=false; btn.innerHTML='finish setup <i class="fa-solid fa-check"></i>'; return; }
 
   // Save first favorite
   const { error: favErr } = await sb.from('favorites').insert({
@@ -884,9 +885,9 @@ async function finishOnboarding() {
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   });
-  if (favErr) { setMsg(document.getElementById('ob-msg2'), favErr.message, 1); btn.disabled=false; btn.textContent='finish setup ✓'; return; }
+  if (favErr) { setMsg(document.getElementById('ob-msg2'), favErr.message, 1); btn.disabled=false; btn.innerHTML='finish setup <i class="fa-solid fa-check"></i>'; return; }
 
-  btn.disabled = false; btn.textContent = 'finish setup ✓';
+  btn.disabled = false; btn.innerHTML = 'finish setup <i class="fa-solid fa-check"></i>';
   const { data } = await sb.from('profiles').select('*').eq('id', me.id).single();
   profile = data; enterApp();
 }
@@ -908,14 +909,14 @@ function renderGrid() {
   }
   g.innerHTML = favs.map(f => `
     <div class="fav-card" onclick="go('${esc(f.redirect_url)}')">
-      ${f.image_data ? `<img class="card-img" src="${f.image_data}" alt="${esc(f.name)}">` : `<div class="card-ph">◈</div>`}
+      ${f.image_data ? `<img class="card-img" src="${f.image_data}" alt="${esc(f.name)}">` : `<div class="card-ph"><i class="fa-regular fa-image"></i></div>`}
       <div class="card-body">
         <div class="card-name">${esc(f.name)}</div>
         <div class="card-slug">/${esc(f.slug)}</div>
       </div>
       <div class="card-actions" onclick="event.stopPropagation()">
-        <button class="card-btn edit" onclick="openModal('${f.id}')">✎</button>
-        <button class="card-btn del"  onclick="delFav('${f.id}')">✕</button>
+        <button class="card-btn edit" onclick="openModal('${f.id}')"><i class="fa-solid fa-pen"></i></button>
+        <button class="card-btn del"  onclick="delFav('${f.id}')"><i class="fa-solid fa-xmark"></i></button>
       </div>
     </div>`).join('');
 }
@@ -972,7 +973,7 @@ function resetUpload() {
 function updateSlugPrev() {
   const s = document.getElementById('f-slug').value.trim();
   document.getElementById('slugPrevEl').innerHTML =
-    s ? `→ <em>aeseof.github.io/realfavorites/${s}</em>` : '';
+    s ? `<i class="fa-solid fa-arrow-right" style="font-size:9px;"></i> <em>aeseof.github.io/realfavorites/${s}</em>` : '';
 }
 
 async function saveFav() {
@@ -980,8 +981,11 @@ async function saveFav() {
   const url  = document.getElementById('f-url').value.trim();
   const slug = document.getElementById('f-slug').value.trim().toLowerCase().replace(/[^a-z0-9-_]/g,'-');
   const msg  = document.getElementById('modal-msg');
+  const btn  = document.getElementById('save-btn');
   if (!name||!url||!slug) { setMsg(msg,'please fill in all fields',1); return; }
   if (favs.find(f=>f.slug===slug && f.id!==editId)) { setMsg(msg,'slug already in use',1); return; }
+
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> saving';
 
   const payload = { user_id: me.id, name, redirect_url: url, slug, image_data: imgData||null, updated_at: new Date().toISOString() };
   let err;
@@ -991,9 +995,11 @@ async function saveFav() {
     payload.created_at = new Date().toISOString();
     ({error:err} = await sb.from('favorites').insert(payload));
   }
+
+  btn.disabled = false; btn.innerHTML = 'save';
   if (err) { setMsg(msg, err.message, 1); return; }
   closeModal(); await loadFavs();
-  toast(editId ? 'favorite updated ✓' : 'favorite added ✓', true);
+  toast(editId ? 'favorite updated' : 'favorite added', true);
 }
 
 async function delFav(id) {
@@ -1016,7 +1022,7 @@ function exportData() {
     favorites: favs.map(f=>({name:f.name, url:f.redirect_url, slug:f.slug}))
   },null,2)],{type:'application/json'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='realfavorites-export.json'; a.click(); toast('exported ✓',true);
+  a.download='realfavorites-export.json'; a.click(); toast('exported',true);
 }
 
 // ── HELPERS ──
@@ -1103,7 +1109,7 @@ function skipSandboxLogin() {
   ];
   grid.innerHTML = demos.map(d => `
     <div class="fav-card" style="opacity:0.7;">
-      <div class="card-ph" style="background:${d.col};">◈</div>
+      <div class="card-ph" style="background:${d.col};"><i class="fa-regular fa-image"></i></div>
       <div class="card-body">
         <div class="card-name">${d.name}</div>
         <div class="card-slug">/${d.slug}</div>
