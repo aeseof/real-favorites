@@ -1009,17 +1009,25 @@ async function saveFav() {
   if (err) { setMsg(msg, err.message, 1); return; }
 
   // deploy redirect page to GitHub Pages
-  const token = (await sb.auth.getSession()).data.session?.access_token;
-  fetch('https://xcwbbkomahpboovksrfo.supabase.co/functions/v1/create-redirect', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify({
-      action: editId ? 'update' : 'create',
-      slug, redirect_url: url, name,
-      image_data: imgData || null,
-      old_slug: oldSlug || null,
-    })
-  }).catch(()=>{}); // fire-and-forget, don't block UI
+  try {
+    const session = (await sb.auth.getSession()).data.session;
+    const token = session?.access_token;
+    const efRes = await fetch('https://xcwbbkomahpboovksrfo.supabase.co/functions/v1/create-redirect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        action: editId ? 'update' : 'create',
+        slug, redirect_url: url, name,
+        image_data: imgData || null,
+        old_slug: oldSlug || null,
+      })
+    });
+    const efData = await efRes.json();
+    console.log('edge function response:', efData);
+    if (!efRes.ok) console.error('edge function error:', efData);
+  } catch(e) {
+    console.error('edge function fetch failed:', e);
+  }
 
   closeModal(); await loadFavs();
   toast(editId ? 'favorite updated' : 'favorite added', true);
