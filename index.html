@@ -340,14 +340,21 @@
             <div class="step-pip"        id="pip2"></div>
           </div>
 
-          <!-- step 0: username -->
+          <!-- step 0: first slug -->
           <div class="step active" id="ostep-0">
             <div class="step-label">step 1 of 3</div>
-            <h2>pick your username</h2>
-            <p class="hint">this appears in your link — <em style="color:var(--pink);font-style:normal;">[username].github.io/realfavorites/</em></p>
+            <h2>your first redirect</h2>
+            <p class="hint">choose a custom back-half for your first link. you can add more from the dashboard.</p>
             <div class="field">
-              <label>username</label>
-              <input type="text" id="ob-uname" placeholder="lowercase, no spaces" oninput="obUsernameInput(this)" autocomplete="off">
+              <label>redirect url</label>
+              <input type="url" id="ob-first-url" placeholder="https://…" autocomplete="off">
+            </div>
+            <div class="field">
+              <label>custom back-half</label>
+              <div class="slug-group">
+                <span class="slug-pfx">aeseof.github.io/realfavorites/</span>
+                <input type="text" id="ob-first-slug" placeholder="my-link" oninput="obSlugInput(this)">
+              </div>
               <div class="slug-live" id="ob-slug-live"></div>
             </div>
             <div id="ob-msg0" class="msg"></div>
@@ -627,11 +634,11 @@ async function doSignOut() {
 // ══════════════════════════════════════════════════
 //  ONBOARDING
 // ══════════════════════════════════════════════════
-function obUsernameInput(el) {
+function obSlugInput(el) {
   el.value = el.value.toLowerCase().replace(/[^a-z0-9_-]/g,'');
   const v = el.value;
   document.getElementById('ob-slug-live').innerHTML =
-    v ? `→ <em>${v}.github.io/realfavorites/</em>` : '';
+    v ? `→ <em>aeseof.github.io/realfavorites/${v}</em>` : '';
 }
 
 function pickUsage(el) {
@@ -642,12 +649,14 @@ function pickUsage(el) {
 
 async function obNext(step) {
   if (step === 0) {
-    const u   = document.getElementById('ob-uname').value.trim();
-    const msg = document.getElementById('ob-msg0');
-    if (!u || u.length < 3) { setMsg(msg,'username must be 3+ characters',1); return; }
-    const { data } = await sb.from('profiles').select('id').eq('username', u).maybeSingle();
-    if (data) { setMsg(msg,'username already taken',1); return; }
-    obData.username = u; setMsg(msg,'',0);
+    const slug = document.getElementById('ob-first-slug').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,'-');
+    const url  = document.getElementById('ob-first-url').value.trim();
+    const msg  = document.getElementById('ob-msg0');
+    if (!url) { setMsg(msg,'please enter a redirect url',1); return; }
+    if (!slug || slug.length < 1) { setMsg(msg,'please enter a custom back-half',1); return; }
+    obData.firstSlug = slug;
+    obData.firstUrl  = url;
+    setMsg(msg,'',0);
   }
   if (step === 1) {
     const msg = document.getElementById('ob-msg1');
@@ -675,15 +684,28 @@ async function finishOnboarding() {
   const btn = document.getElementById('ob-finish');
   btn.disabled = true; btn.textContent = 'saving…';
 
-  const { error } = await sb.from('profiles').upsert({
+  // Save profile
+  const { error: profErr } = await sb.from('profiles').upsert({
     id: me.id, email: me.email,
-    username: obData.username, usage: obData.usage,
+    username: me.email.split('@')[0], // internal identifier only
+    usage: obData.usage,
     onboarding_done: true, created_at: new Date().toISOString(),
   });
+  if (profErr) { setMsg(document.getElementById('ob-msg2'), profErr.message, 1); btn.disabled=false; btn.textContent='finish setup ✓'; return; }
+
+  // Save first favorite
+  const { error: favErr } = await sb.from('favorites').insert({
+    user_id: me.id,
+    name: obData.firstSlug,
+    redirect_url: obData.firstUrl,
+    slug: obData.firstSlug,
+    image_data: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+  if (favErr) { setMsg(document.getElementById('ob-msg2'), favErr.message, 1); btn.disabled=false; btn.textContent='finish setup ✓'; return; }
 
   btn.disabled = false; btn.textContent = 'finish setup ✓';
-  if (error) { setMsg(document.getElementById('ob-msg2'), error.message, 1); return; }
-
   const { data } = await sb.from('profiles').select('*').eq('id', me.id).single();
   profile = data; enterApp();
 }
@@ -700,7 +722,7 @@ function renderGrid() {
   const g = document.getElementById('favGrid');
   document.getElementById('s-count').textContent = favs.length;
   if (!favs.length) {
-    g.innerHTML = `<div class="empty"><div class="glyph">◇</div><p>no favorites yet<br>click <em>+ new favorite</em> to get started</p></div>`;
+    g.innerHTML = `<div class="empty"><div class="glyph">◇</div><p>no favorites yet<br>hit <em>+ new favorite</em> to add another link</p></div>`;
     return;
   }
   g.innerHTML = favs.map(f => `
@@ -738,7 +760,7 @@ function openModal(id = null) {
     document.getElementById('f-slug').value = '';
   }
 
-  document.getElementById('slugPfx').textContent = `${profile.username}.github.io/realfavorites/`;
+  document.getElementById('slugPfx').textContent = 'aeseof.github.io/realfavorites/';
   updateSlugPrev();
   document.getElementById('modalBg').classList.add('open');
 }
@@ -769,7 +791,7 @@ function resetUpload() {
 function updateSlugPrev() {
   const s = document.getElementById('f-slug').value.trim();
   document.getElementById('slugPrevEl').innerHTML =
-    s && profile ? `→ <em>${profile.username}.github.io/realfavorites/${s}</em>` : '';
+    s ? `→ <em>aeseof.github.io/realfavorites/${s}</em>` : '';
 }
 
 async function saveFav() {
@@ -803,8 +825,8 @@ function syncSettings() {
   document.getElementById('s-uname').textContent   = profile.username;
   document.getElementById('s-email').textContent   = profile.email || me.email;
   document.getElementById('s-usage').textContent   = profile.usage || '—';
-  document.getElementById('s-baseurl').textContent = `${profile.username}.github.io/realfavorites/`;
-  document.getElementById('s-chrome').textContent  = `https://${profile.username}.github.io/realfavorites/`;
+  document.getElementById('s-baseurl').textContent = 'aeseof.github.io/realfavorites/';
+  document.getElementById('s-chrome').textContent  = 'https://aeseof.github.io/realfavorites/';
 }
 
 function exportData() {
