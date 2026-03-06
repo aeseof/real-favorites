@@ -40,12 +40,6 @@
 
   #rain { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
 
-  #puddle {
-    position: fixed; bottom: 0; left: 0;
-    width: 100%; height: 70px;
-    pointer-events: none; z-index: 12;
-  }
-
   /* ── CLOUD INTRO ── */
   #cloud-intro {
     position: fixed; inset: 0; z-index: 9990; pointer-events: none;
@@ -189,7 +183,6 @@
   .auth-layout {
     flex: 1; display: grid; grid-template-columns: 1fr 1fr;
     min-height: 0; background: transparent;
-    padding-bottom: 70px;
   }
   .auth-left {
     border-right: 1px solid var(--border-soft);
@@ -213,9 +206,11 @@
 
   input[type="text"], input[type="email"], input[type="password"], input[type="url"] {
     width: 100%; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 14px; color: var(--beige);
+    border-radius: 8px; padding: 9px 13px; color: var(--beige);
     font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 300;
-    outline: none; transition: border-color var(--t), box-shadow var(--t); letter-spacing: 0.04em;
+    outline: none; transition: border-color var(--t), box-shadow var(--t);
+    letter-spacing: 0.04em; -webkit-appearance: none; appearance: none;
+    box-sizing: border-box;
   }
   input:focus { border-color: var(--pink-dim); box-shadow: 0 0 0 3px rgba(232,160,176,0.09); }
   input::placeholder { color: var(--text-muted); }
@@ -383,7 +378,7 @@
   .captcha-wrap { margin-top: 12px; display: flex; justify-content: center; transform: scale(0.85); transform-origin: center top; }
 
   @media (max-width: 768px) {
-    .auth-layout { grid-template-columns: 1fr; padding-bottom: 80px; }
+    .auth-layout { grid-template-columns: 1fr; }
     .auth-left { display: none; }
     .auth-right { padding: 20px; }
     header { padding: 14px 20px; }
@@ -400,7 +395,6 @@
 </head>
 <body>
 <canvas id="rain"></canvas>
-<canvas id="puddle"></canvas>
 
 <!-- cloud intro -->
 <div id="cloud-intro">
@@ -532,7 +526,7 @@
             <p class="hint">choose a custom back-half for your first link. you can add more from the dashboard.</p>
             <div class="field">
               <label>redirect url</label>
-              <input type="url" id="ob-first-url" placeholder="https://…" autocomplete="off">
+              <input type="text" id="ob-first-url" placeholder="https://…" autocomplete="off">
             </div>
             <div class="field">
               <label>custom back-half</label>
@@ -657,7 +651,7 @@
       </div>
     </div>
     <div class="field"><label>display name</label><input type="text" id="f-name" placeholder="e.g. figma, notion, pinterest"></div>
-    <div class="field"><label>redirect url</label><input type="url" id="f-url" placeholder="https://…"></div>
+    <div class="field"><label>redirect url</label><input type="text" id="f-url" placeholder="https://…"></div>
     <div class="field">
       <label>custom back-half</label>
       <div class="slug-group">
@@ -1179,35 +1173,24 @@ function skipSandboxLogin() {
   loop();
 })();
 
-// ── RAIN + PUDDLE (optimised, #FFEFF1 palette) ────
+// ── RAIN ──────────────────────────────────────────
 (function() {
   const RC = document.getElementById('rain');
-  const PC = document.getElementById('puddle');
   const rc = RC.getContext('2d');
-  const pc = PC.getContext('2d');
-
-  let W, H, drops, splashes = [], ripples = [];
-  const PUDDLE_H = 70;
-  const NODES    = 70;    // fewer nodes = faster wave calc
-  const COUNT    = 130;   // fewer drops = no lag
-  let nodes = [];
-
-  // #FFEFF1 base — pinkish white with slight blue tint variants
+  let W, H, drops;
+  const COUNT = 130;
   const C = [
-    'rgba(255,239,241,',  // #FFEFF1 pure
-    'rgba(255,235,245,',  // warm pink-white
-    'rgba(240,235,255,',  // cool lavender-white
-    'rgba(255,244,248,',  // blush white
-    'rgba(235,240,255,',  // icy blue-white
+    'rgba(255,239,241,',
+    'rgba(255,235,245,',
+    'rgba(240,235,255,',
+    'rgba(255,244,248,',
+    'rgba(235,240,255,',
   ];
 
   function resize() {
     W = RC.width  = window.innerWidth;
     H = RC.height = window.innerHeight;
-    PC.width  = W;
-    PC.height = PUDDLE_H;
-    initNodes();
-    if (!drops) initDrops();
+    if (!drops) drops = Array.from({length: COUNT}, () => mkDrop(false));
   }
 
   function mkDrop(fromTop) {
@@ -1226,140 +1209,22 @@ function skipSandboxLogin() {
     };
   }
 
-  function initDrops() { drops = Array.from({length: COUNT}, () => mkDrop(false)); }
-
-  // wave physics
-  function initNodes() {
-    nodes = Array.from({length: NODES}, (_, i) => ({
-      x: (i/(NODES-1))*W, y: 0, vy: 0,
-    }));
-  }
-  function stepWaves() {
-    const K=0.024, D=0.87, S=0.13;
-    for(let i=0;i<NODES;i++){ nodes[i].vy += -K*nodes[i].y; nodes[i].vy *= D; nodes[i].y += nodes[i].vy; }
-    for(let i=1;i<NODES-1;i++){
-      const d = S*(nodes[i-1].y + nodes[i+1].y - 2*nodes[i].y);
-      nodes[i-1].vy += d*0.5; nodes[i+1].vy += d*0.5;
-    }
-  }
-  function disturb(x, str) {
-    const ni = Math.round((x/W)*(NODES-1)), sp=3;
-    for(let i=Math.max(0,ni-sp);i<=Math.min(NODES-1,ni+sp);i++)
-      nodes[i].vy -= str*(1-Math.abs(i-ni)/(sp+1));
-  }
-
-  function splash(x, col) {
-    const sy = PUDDLE_H * 0.2;
-    const n = 3 + Math.floor(Math.random()*4);
-    for(let i=0;i<n;i++){
-      const a = -Math.PI + Math.random()*Math.PI, s = 0.7+Math.random()*1.8;
-      splashes.push({ x, y: sy, vx: Math.cos(a)*s, vy: -(0.6+Math.random()*2),
-        col, life:1, decay:0.038+Math.random()*0.028, r:0.7+Math.random()*1.0 });
-    }
-    ripples.push({ x, r:1.5, maxR:14+Math.random()*22, a:0.3, col, grow:0.45+Math.random()*0.3 });
-  }
-
-  // ── draw puddle ──
-  function drawPuddle() {
-    pc.clearRect(0, 0, W, PUDDLE_H);
-    const sy = PUDDLE_H * 0.2;
-
-    // surface path (reused for fill + stroke)
-    function surfacePath() {
-      pc.beginPath();
-      pc.moveTo(0, PUDDLE_H);
-      pc.lineTo(0, sy + nodes[0].y);
-      for(let i=1;i<NODES;i++){
-        const px=nodes[i-1].x, py=sy+nodes[i-1].y, cx=nodes[i].x, cy=sy+nodes[i].y;
-        pc.quadraticCurveTo(px, py, (px+cx)/2, (py+cy)/2);
-      }
-      pc.lineTo(W, sy+nodes[NODES-1].y);
-      pc.lineTo(W, PUDDLE_H);
-      pc.closePath();
-    }
-
-    // dark glassy fill
-    surfacePath();
-    const fg = pc.createLinearGradient(0,sy,0,PUDDLE_H);
-    fg.addColorStop(0,   'rgba(16,10,22,0.94)');
-    fg.addColorStop(1,   'rgba(8,5,14,0.98)');
-    pc.fillStyle = fg; pc.fill();
-
-    // #FFEFF1 sheen sweep
-    surfacePath();
-    const sg = pc.createLinearGradient(0,sy,W,sy+18);
-    sg.addColorStop(0,    'rgba(255,239,241,0.00)');
-    sg.addColorStop(0.15, 'rgba(255,239,241,0.07)');
-    sg.addColorStop(0.38, 'rgba(240,235,255,0.10)');
-    sg.addColorStop(0.6,  'rgba(255,239,241,0.08)');
-    sg.addColorStop(0.82, 'rgba(235,240,255,0.07)');
-    sg.addColorStop(1,    'rgba(255,239,241,0.00)');
-    pc.fillStyle = sg; pc.fill();
-
-    // surface edge highlight
-    pc.beginPath();
-    pc.moveTo(0, sy+nodes[0].y);
-    for(let i=1;i<NODES;i++){
-      const px=nodes[i-1].x, py=sy+nodes[i-1].y, cx=nodes[i].x, cy=sy+nodes[i].y;
-      pc.quadraticCurveTo(px, py, (px+cx)/2, (py+cy)/2);
-    }
-    const lg = pc.createLinearGradient(0,0,W,0);
-    lg.addColorStop(0,    'rgba(255,239,241,0.00)');
-    lg.addColorStop(0.12, 'rgba(255,239,241,0.50)');
-    lg.addColorStop(0.35, 'rgba(240,235,255,0.35)');
-    lg.addColorStop(0.55, 'rgba(255,239,241,0.45)');
-    lg.addColorStop(0.78, 'rgba(235,240,255,0.38)');
-    lg.addColorStop(1,    'rgba(255,239,241,0.00)');
-    pc.strokeStyle = lg; pc.lineWidth = 1.1; pc.stroke();
-
-    // ripples
-    for(let i=ripples.length-1;i>=0;i--){
-      const r=ripples[i]; r.r+=r.grow; r.a*=0.91;
-      if(r.a<0.006){ ripples.splice(i,1); continue; }
-      const ni=Math.min(NODES-1,Math.max(0,Math.round((r.x/W)*(NODES-1))));
-      pc.beginPath();
-      pc.ellipse(r.x, sy+(nodes[ni]?.y||0), r.r, r.r*0.2, 0, 0, Math.PI*2);
-      pc.strokeStyle=r.col+r.a.toFixed(3)+')'; pc.lineWidth=0.6; pc.stroke();
-    }
-
-    // splash drops
-    for(let i=splashes.length-1;i>=0;i--){
-      const s=splashes[i]; s.x+=s.vx; s.y+=s.vy; s.vy+=0.13;
-      s.life-=s.decay;
-      if(s.life<=0){ splashes.splice(i,1); continue; }
-      pc.beginPath(); pc.arc(s.x,s.y,s.r,0,Math.PI*2);
-      pc.fillStyle=s.col+(s.life*0.7).toFixed(3)+')'; pc.fill();
-    }
-  }
-
-  // ── main loop ──
-  let frame = 0;
   function draw() {
-    rc.clearRect(0,0,W,H);
-    frame++;
-
+    rc.clearRect(0, 0, W, H);
     for(const d of drops){
       d.ph += d.fr;
-      const shim = d.a*(0.6+0.4*Math.sin(d.ph));
-      const x2=d.x-d.sa*d.len, y2=d.y-d.ca*d.len;
-      const g=rc.createLinearGradient(d.x,d.y,x2,y2);
-      g.addColorStop(0,   d.col+'0)');
-      g.addColorStop(0.3, d.col+shim.toFixed(3)+')');
-      g.addColorStop(0.7, d.col+(shim*0.5).toFixed(3)+')');
-      g.addColorStop(1,   d.col+'0)');
-      rc.beginPath(); rc.moveTo(d.x,d.y); rc.lineTo(x2,y2);
-      rc.strokeStyle=g; rc.lineWidth=d.lw; rc.stroke();
-      d.y+=d.spd; d.x+=d.sa*d.spd;
-      // puddle canvas is PUDDLE_H px tall, surface line at sy=PUDDLE_H*0.2 from its top
-      // in screen coords: surface = H - PUDDLE_H + PUDDLE_H*0.2 = H - PUDDLE_H*0.8
-      if(d.y >= H - PUDDLE_H * 0.8){
-        splash(d.x,d.col); disturb(d.x,1.4+Math.random()*1.8);
-        Object.assign(d,mkDrop(true));
-      }
+      const shim = d.a * (0.6 + 0.4 * Math.sin(d.ph));
+      const x2 = d.x - d.sa * d.len, y2 = d.y - d.ca * d.len;
+      const g = rc.createLinearGradient(d.x, d.y, x2, y2);
+      g.addColorStop(0,   d.col + '0)');
+      g.addColorStop(0.3, d.col + shim.toFixed(3) + ')');
+      g.addColorStop(0.7, d.col + (shim * 0.5).toFixed(3) + ')');
+      g.addColorStop(1,   d.col + '0)');
+      rc.beginPath(); rc.moveTo(d.x, d.y); rc.lineTo(x2, y2);
+      rc.strokeStyle = g; rc.lineWidth = d.lw; rc.stroke();
+      d.y += d.spd; d.x += d.sa * d.spd;
+      if (d.y > H + d.len) Object.assign(d, mkDrop(true));
     }
-
-    stepWaves();
-    drawPuddle();
     requestAnimationFrame(draw);
   }
 
