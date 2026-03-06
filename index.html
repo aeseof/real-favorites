@@ -887,6 +887,14 @@ async function finishOnboarding() {
   });
   if (favErr) { setMsg(document.getElementById('ob-msg2'), favErr.message, 1); btn.disabled=false; btn.innerHTML='finish setup <i class="fa-solid fa-check"></i>'; return; }
 
+  // deploy first redirect page
+  const token = (await sb.auth.getSession()).data.session?.access_token;
+  fetch('https://xcwbbkomahpboovksrfo.supabase.co/functions/v1/create-redirect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ action: 'create', slug: obData.firstSlug, redirect_url: obData.firstUrl, name: obData.firstSlug, image_data: null })
+  }).catch(()=>{});
+
   btn.disabled = false; btn.innerHTML = 'finish setup <i class="fa-solid fa-check"></i>';
   const { data } = await sb.from('profiles').select('*').eq('id', me.id).single();
   profile = data; enterApp();
@@ -987,6 +995,7 @@ async function saveFav() {
 
   btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> saving';
 
+  const oldSlug = editId ? favs.find(f=>f.id===editId)?.slug : null;
   const payload = { user_id: me.id, name, redirect_url: url, slug, image_data: imgData||null, updated_at: new Date().toISOString() };
   let err;
   if (editId) {
@@ -998,12 +1007,35 @@ async function saveFav() {
 
   btn.disabled = false; btn.innerHTML = 'save';
   if (err) { setMsg(msg, err.message, 1); return; }
+
+  // deploy redirect page to GitHub Pages
+  const token = (await sb.auth.getSession()).data.session?.access_token;
+  fetch('https://xcwbbkomahpboovksrfo.supabase.co/functions/v1/create-redirect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({
+      action: editId ? 'update' : 'create',
+      slug, redirect_url: url, name,
+      image_data: imgData || null,
+      old_slug: oldSlug || null,
+    })
+  }).catch(()=>{}); // fire-and-forget, don't block UI
+
   closeModal(); await loadFavs();
   toast(editId ? 'favorite updated' : 'favorite added', true);
 }
 
 async function delFav(id) {
+  const fav = favs.find(f=>f.id===id);
   await sb.from('favorites').delete().eq('id',id);
+  if (fav?.slug) {
+    const token = (await sb.auth.getSession()).data.session?.access_token;
+    fetch('https://xcwbbkomahpboovksrfo.supabase.co/functions/v1/create-redirect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ action: 'delete', slug: fav.slug })
+    }).catch(()=>{});
+  }
   await loadFavs(); toast('deleted');
 }
 
