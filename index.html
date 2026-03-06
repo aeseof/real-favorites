@@ -1023,10 +1023,9 @@ async function saveFav() {
       })
     });
     const efData = await efRes.json();
-    console.log('edge function response:', efData);
-    if (!efRes.ok) console.error('edge function error:', efData);
+    if (!efRes.ok) toast('deploy error: ' + (efData?.error || efRes.status));
   } catch(e) {
-    console.error('edge function fetch failed:', e);
+    toast('deploy failed: ' + e.message);
   }
 
   closeModal(); await loadFavs();
@@ -1074,10 +1073,10 @@ function setMsg(el, txt, err) {
   el.textContent = txt;
   el.className = 'msg' + (txt ? (err ? ' err' : ' ok') : '');
 }
-function toast(msg, pink=false) {
+function toast(msg, pink=false, duration=2500) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = 'toast show'+(pink?' pink':'');
-  setTimeout(()=>{ t.className='toast'; }, 2500);
+  setTimeout(()=>{ t.className='toast'; }, duration);
 }
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
